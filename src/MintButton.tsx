@@ -33,17 +33,6 @@ export const MintButton = ({
     const [clicked, setClicked] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
 
-    useEffect(() => {
-        setIsVerifying(false);
-        if (gatewayStatus === GatewayStatus.COLLECTING_USER_INFORMATION && clicked) {
-            // when user approves wallet verification txn
-            setIsVerifying(true);
-        } else if (gatewayStatus === GatewayStatus.ACTIVE && clicked) {
-            console.log('Verified human, now minting...');
-            onMint(1);
-            setClicked(false);
-        }
-    }, [gatewayStatus, clicked, setClicked, onMint]);
 
     return (
         <CTAButton
@@ -57,7 +46,7 @@ export const MintButton = ({
                 isVerifying
             }
             onClick={async () => {
-                if (isActive && candyMachine?.state.gatekeeper && gatewayStatus !== GatewayStatus.ACTIVE) {
+                if (isActive  && gatewayStatus !== GatewayStatus.ACTIVE) {
                     console.log('Requesting gateway token');
                     setClicked(true);
                     await requestGatewayToken();
@@ -68,22 +57,6 @@ export const MintButton = ({
             }}
             variant="contained"
         >
-            {!candyMachine ? (
-                "CONNECTING..."
-            ) : candyMachine?.state.isSoldOut || isSoldOut ? (
-                'SOLD OUT'
-            ) : isActive ? (
-                isVerifying ? 'VERIFYING...' :
-                    isMinting || clicked ? (
-                        <CircularProgress/>
-                    ) : (
-                        "MINT"
-                    )
-            ) : isEnded ? "ENDED" : (candyMachine?.state.goLiveDate ? (
-                "SOON"
-            ) : (
-                "UNAVAILABLE"
-            ))}
         </CTAButton>
     );
 };

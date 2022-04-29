@@ -9,14 +9,6 @@ import { clusterApiUrl } from "@solana/web3.js";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
     getPhantomWallet,
-    getSlopeWallet,
-    getSolflareWallet,
-    getSolflareWebWallet,
-    getSolletWallet,
-    getSolletExtensionWallet,
-    getSolongWallet,
-    getLedgerWallet,
-    getSafePalWallet,
 } from "@solana/wallet-adapter-wallets";
 
 import {
@@ -29,9 +21,6 @@ import Home from "./Home";
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 
-const candyMachineId = new anchor.web3.PublicKey(
-  process.env.REACT_APP_CANDY_MACHINE_ID!
-);
 
 const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork;
 
@@ -75,14 +64,6 @@ const App = () => {
     const wallets = useMemo(
         () => [
             getPhantomWallet(),
-            getSlopeWallet(),
-            getSolflareWallet(),
-            getSolflareWebWallet(),
-            getSolletWallet({ network }),
-            getSolletExtensionWallet({ network }),
-            getSolongWallet(),
-            getLedgerWallet(),
-            getSafePalWallet(),
         ],
         []
     );
@@ -93,7 +74,6 @@ const App = () => {
           <WalletProvider wallets={wallets} autoConnect={true}>
             <WalletModalProvider>
               <Home
-                candyMachineId={candyMachineId}
                 connection={connection}
                 txTimeout={txTimeout}
                 rpcHost={rpcHost}

