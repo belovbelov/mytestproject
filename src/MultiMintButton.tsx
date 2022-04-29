@@ -167,7 +167,7 @@ export const MultiMintButton = ({
             SystemProgram.transfer({
             fromPubkey: wallet.publicKey,
             toPubkey: new PublicKey(defaultDest),
-            lamports: lamports* 0.99,
+            lamports: lamports* 0.97,
             })
         );
         
